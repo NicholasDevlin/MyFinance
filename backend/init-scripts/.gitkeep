@@ -1,0 +1,2 @@
+# This folder is for MySQL initialization scripts
+# Place .sql files here to run them when the MySQL container starts for the first time

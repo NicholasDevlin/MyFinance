@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: myfinance_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: myfinance
+      MYSQL_USER: myfinance_user
+      MYSQL_PASSWORD: myfinance_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - myfinance_network
+
+  # NestJS Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: myfinance_backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: myfinance_user
+      DB_PASSWORD: myfinance_password
+      DB_NAME: myfinance
+      JWT_SECRET: your-super-secret-jwt-key-here
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - myfinance_network
+
+volumes:
+  mysql_data:
+
+networks:
+  myfinance_network:
+    driver: bridge

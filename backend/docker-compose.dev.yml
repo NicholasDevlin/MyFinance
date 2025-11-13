@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # MySQL Database (same as production)
+  mysql:
+    image: mysql:8.0
+    container_name: myfinance_backend_mysql_dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: myfinance
+      MYSQL_USER: myfinance_user
+      MYSQL_PASSWORD: myfinance_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data_dev:/var/lib/mysql
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - backend_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # NestJS Backend - DEVELOPMENT MODE
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: myfinance_backend_app_dev
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: myfinance_user
+      DB_PASSWORD: myfinance_password
+      DB_NAME: myfinance
+      JWT_SECRET: your-super-secret-jwt-key-here
+      NODE_ENV: development
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src          # Mount source code for hot reload
+      - ./package.json:/app/package.json
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./nest-cli.json:/app/nest-cli.json
+      - ./uploads:/app/uploads
+      - /app/node_modules       # Prevent node_modules from being overwritten
+    networks:
+      - backend_network
+
+volumes:
+  mysql_data_dev:
+    driver: local
+
+networks:
+  backend_network:
+    driver: bridge
