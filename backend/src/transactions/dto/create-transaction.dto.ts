@@ -1,12 +1,11 @@
-import { IsNotEmpty, IsEnum, IsDecimal, Min, IsOptional, IsInt, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsEnum, Min, IsOptional, IsInt, IsDateString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TransactionType } from '../entities/transaction.entity';
 
 export class CreateTransactionDto {
-  @IsNotEmpty()
-  @IsDecimal({ decimal_digits: '0,2' })
-  @Min(0.01)
   @Transform(({ value }) => parseFloat(value))
+  @IsNotEmpty()
+  @Min(0.01)
   amount: number;
 
   @IsEnum(TransactionType)
