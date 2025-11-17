@@ -4,7 +4,8 @@ import '../../providers/accounts_provider.dart';
 import '../../models/account.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/account_card.dart';
-import 'add_account_screen.dart';
+import '../../utils/number_formatter.dart';
+import 'account_form_screen.dart';
 
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});
@@ -34,7 +35,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const AddAccountScreen(),
+                  builder: (context) => const AccountFormScreen(), // No account = add mode
                 ),
               );
             },
@@ -92,7 +93,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AddAccountScreen(),
+                          builder: (context) => const AccountFormScreen(),
                         ),
                       );
                     },
@@ -132,7 +133,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        '\$${accountsProvider.totalBalance.toStringAsFixed(2)}',
+                        NumberFormatter.formatCurrency(accountsProvider.totalBalance),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 32,
@@ -199,7 +200,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
               title: const Text('Edit Account'),
               onTap: () {
                 Navigator.pop(context);
-                // Navigate to edit account screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AccountFormScreen(account: account), // Pass account = edit mode
+                  ),
+                );
               },
             ),
             ListTile(
