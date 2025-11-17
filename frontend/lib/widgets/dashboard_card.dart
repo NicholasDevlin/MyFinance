@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/number_formatter.dart';
 
 class DashboardCard extends StatelessWidget {
   final String title;
@@ -49,9 +50,11 @@ class DashboardCard extends StatelessWidget {
                 ),
               ],
             ),
+
             const SizedBox(height: 8),
+
             Text(
-              '\$${amount.toStringAsFixed(2)}',
+              NumberFormatter.formatCurrency(amount),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,

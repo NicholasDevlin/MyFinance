@@ -1,5 +1,6 @@
 import 'account.dart';
 import 'category.dart';
+import '../utils/number_formatter.dart';
 
 enum TransactionType {
   income('income', 'Income'),
@@ -71,7 +72,7 @@ class Transaction {
   }
 
   String get formattedAmount {
-    return '\$${amount.toStringAsFixed(2)}';
+    return NumberFormatter.formatCurrency(amount);
   }
 
   String get displayAmount {

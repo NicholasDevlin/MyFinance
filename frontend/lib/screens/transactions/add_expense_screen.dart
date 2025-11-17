@@ -9,6 +9,8 @@ import '../../providers/categories_provider.dart';
 import '../../models/transaction.dart';
 import '../../models/category.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/number_formatter.dart';
+import '../../utils/thousand_separator_formatter.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -22,7 +24,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   final _imagePicker = ImagePicker();
-  
+
   DateTime _selectedDate = DateTime.now();
   int? _selectedAccountId;
   int? _selectedCategoryId;
@@ -50,7 +52,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2020),
+      firstDate: DateTime.now().subtract(Duration(days: 365)),
       lastDate: DateTime.now(),
     );
     if (picked != null && picked != _selectedDate) {
@@ -89,14 +91,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   Future<void> _saveExpense() async {
-    if (_formKey.currentState!.validate() && 
-        _selectedAccountId != null && 
-        _selectedCategoryId != null) {
-      
+    if (_formKey.currentState!.validate()
+        && _selectedAccountId != null
+        && _selectedCategoryId != null) {
+
       final transactionsProvider = Provider.of<TransactionsProvider>(context, listen: false);
-      
+
       final success = await transactionsProvider.createTransaction(
-        amount: double.parse(_amountController.text),
+        amount: _amountController.numericValue ?? 0.0,
         type: TransactionType.expense,
         date: _selectedDate,
         accountId: _selectedAccountId!,
@@ -163,16 +165,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  ThousandSeparatorInputFormatter(),
+                ],
                 decoration: const InputDecoration(
                   labelText: 'Amount',
-                  prefixText: '\$ ',
+                  prefixText: 'Rp ',
                   prefixIcon: Icon(Icons.attach_money),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter an amount';
                   }
-                  final amount = double.tryParse(value);
+                  final amount = ThousandSeparatorInputFormatter.getNumericValue(value);
                   if (amount == null || amount <= 0) {
                     return 'Please enter a valid amount';
                   }
@@ -191,7 +196,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     prefixIcon: Icon(Icons.calendar_today),
                   ),
                   child: Text(
-                    DateFormat('MMM dd, yyyy').format(_selectedDate),
+                    DateFormat('dd MMM yyyy').format(_selectedDate),
                   ),
                 ),
               ),
@@ -210,7 +215,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     items: accountsProvider.accounts.map((account) {
                       return DropdownMenuItem(
                         value: account.id,
-                        child: Text('${account.name} (\$${account.balance.toStringAsFixed(2)})'),
+                        child: Text('${account.name} (${NumberFormatter.formatCurrency(account.balance)})'),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -222,14 +227,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       if (value == null) {
                         return 'Please select an account';
                       }
+
                       return null;
                     },
                   );
                 },
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Category Dropdown
               Consumer<CategoriesProvider>(
                 builder: (context, categoriesProvider, child) {
@@ -267,14 +273,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       if (value == null) {
                         return 'Please select a category';
                       }
+
                       return null;
                     },
                   );
                 },
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Receipt Upload
               Card(
                 child: Padding(

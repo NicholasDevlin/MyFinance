@@ -7,6 +7,8 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/dashboard_card.dart';
 import '../../widgets/account_card.dart';
+import '../../utils/number_formatter.dart';
+import '../accounts/accounts_screen.dart';
 
 class DashboardTab extends StatefulWidget {
   const DashboardTab({super.key});
@@ -29,18 +31,6 @@ class _DashboardTabState extends State<DashboardTab> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final authProvider = Provider.of<AuthProvider>(context, listen: false);
-              await authProvider.logout();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
-          ),
-        ],
       ),
       body: Consumer<DashboardProvider>(
         builder: (context, dashboardProvider, child) {
@@ -104,7 +94,7 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
             ),
             Text(
-              DateFormat('EEEE, MMMM d').format(DateTime.now()),
+              DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now()),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppTheme.textSecondary,
               ),
@@ -141,7 +131,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  '\$${provider.totalBalance.toStringAsFixed(2)}',
+                  NumberFormatter.formatCurrency(provider.totalBalance),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 32,
@@ -194,7 +184,7 @@ class _DashboardTabState extends State<DashboardTab> {
     return Consumer<DashboardProvider>(
       builder: (context, provider, child) {
         final currentMonth = provider.currentMonthSummary;
-        
+
         if (currentMonth == null) {
           return const SizedBox.shrink();
         }
@@ -214,13 +204,15 @@ class _DashboardTabState extends State<DashboardTab> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
                 SizedBox(
                   height: 200,
                   child: BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
-                      maxY: [income, expenses].reduce((a, b) => a > b ? a : b) * 1.2,
+                      maxY: [income, expenses].reduce((a, b) => a > b ? a : b) * 1.2, // 1.2 is for extra 20% padding top
                       barGroups: [
                         BarChartGroupData(
                           x: 0,
@@ -292,7 +284,7 @@ class _DashboardTabState extends State<DashboardTab> {
     return Consumer<DashboardProvider>(
       builder: (context, provider, child) {
         final accounts = provider.accounts;
-        
+
         if (accounts.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -311,7 +303,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 ),
                 TextButton(
                   onPressed: () {
-                    // Navigate to accounts screen
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => AccountsScreen()));
                   },
                   child: const Text('View All'),
                 ),
@@ -319,14 +311,15 @@ class _DashboardTabState extends State<DashboardTab> {
             ),
             const SizedBox(height: 10),
             SizedBox(
-              height: 120,
+              height: 130,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: accounts.length,
                 itemBuilder: (context, index) {
                   final account = accounts[index];
+
                   return Container(
-                    width: 200,
+                    width: 280,
                     margin: const EdgeInsets.only(right: 12),
                     child: AccountCard(account: account),
                   );
@@ -343,7 +336,7 @@ class _DashboardTabState extends State<DashboardTab> {
     return Consumer<DashboardProvider>(
       builder: (context, provider, child) {
         final spendingData = provider.spendingByCategory;
-        
+
         if (spendingData.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -366,7 +359,7 @@ class _DashboardTabState extends State<DashboardTab> {
                   final color = Color(
                     int.parse(category['color'].toString().replaceFirst('#', '0xFF')),
                   );
-                  
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Row(
@@ -384,7 +377,7 @@ class _DashboardTabState extends State<DashboardTab> {
                           child: Text(category['name']),
                         ),
                         Text(
-                          '\$${total.toStringAsFixed(2)}',
+                          NumberFormatter.formatCurrency(total),
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                           ),

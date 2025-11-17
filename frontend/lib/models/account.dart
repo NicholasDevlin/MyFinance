@@ -1,3 +1,5 @@
+import '../utils/number_formatter.dart';
+
 enum AccountType {
   bankAccount('bank_account', 'Bank Account'),
   cash('cash', 'Cash'),
@@ -58,6 +60,6 @@ class Account {
   }
 
   String get formattedBalance {
-    return '\$${balance.toStringAsFixed(2)}';
+    return NumberFormatter.formatCurrency(balance);
   }
 }

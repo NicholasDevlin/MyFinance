@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/account.dart';
 import '../theme/app_theme.dart';
+import '../utils/number_formatter.dart';
 
 class AccountCard extends StatelessWidget {
   final dynamic account; // Can be Account model or Map from API
@@ -51,17 +52,10 @@ class AccountCard extends StatelessWidget {
     }
 
     String getAccountTypeName() {
-      switch (typeValue) {
-        case 'bank_account':
-          return 'Bank Account';
-        case 'cash':
-          return 'Cash';
-        case 'credit_card':
-          return 'Credit Card';
-        case 'e_wallet':
-          return 'E-Wallet';
-        default:
-          return 'Account';
+      try {
+        return AccountType.fromValue(typeValue).displayName;
+      } catch (e) {
+        return 'Account';
       }
     }
 
@@ -112,7 +106,7 @@ class AccountCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '\$${balance.toStringAsFixed(2)}',
+                NumberFormatter.formatCurrency(balance),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: color,

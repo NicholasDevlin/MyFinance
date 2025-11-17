@@ -7,6 +7,8 @@ import '../../providers/categories_provider.dart';
 import '../../models/transaction.dart';
 import '../../models/category.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/number_formatter.dart';
+import '../../utils/thousand_separator_formatter.dart';
 
 class AddIncomeScreen extends StatefulWidget {
   const AddIncomeScreen({super.key});
@@ -46,9 +48,10 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2020),
+      firstDate: DateTime.now().subtract(Duration(days: 365)),
       lastDate: DateTime.now(),
     );
+
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
@@ -64,7 +67,7 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
       final transactionsProvider = Provider.of<TransactionsProvider>(context, listen: false);
       
       final success = await transactionsProvider.createTransaction(
-        amount: double.parse(_amountController.text),
+        amount: _amountController.numericValue ?? 0.0,
         type: TransactionType.income,
         date: _selectedDate,
         accountId: _selectedAccountId!,
@@ -130,25 +133,30 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  ThousandSeparatorInputFormatter(),
+                ],
                 decoration: const InputDecoration(
                   labelText: 'Amount',
-                  prefixText: '\$ ',
+                  prefixText: 'Rp ',
                   prefixIcon: Icon(Icons.attach_money),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter an amount';
                   }
-                  final amount = double.tryParse(value);
+
+                  final amount = ThousandSeparatorInputFormatter.getNumericValue(value);
                   if (amount == null || amount <= 0) {
                     return 'Please enter a valid amount';
                   }
+
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Date Field
               InkWell(
                 onTap: _selectDate,
@@ -158,13 +166,13 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
                     prefixIcon: Icon(Icons.calendar_today),
                   ),
                   child: Text(
-                    DateFormat('MMM dd, yyyy').format(_selectedDate),
+                    DateFormat('dd MMM yyyy').format(_selectedDate),
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Account Dropdown
               Consumer<AccountsProvider>(
                 builder: (context, accountsProvider, child) {
@@ -177,7 +185,7 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
                     items: accountsProvider.accounts.map((account) {
                       return DropdownMenuItem(
                         value: account.id,
-                        child: Text('${account.name} (\$${account.balance.toStringAsFixed(2)})'),
+                        child: Text('${account.name} (${NumberFormatter.formatCurrency(account.balance)})'),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -189,14 +197,15 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
                       if (value == null) {
                         return 'Please select an account';
                       }
+
                       return null;
                     },
                   );
                 },
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Category Dropdown
               Consumer<CategoriesProvider>(
                 builder: (context, categoriesProvider, child) {
@@ -234,6 +243,7 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
                       if (value == null) {
                         return 'Please select a category';
                       }
+
                       return null;
                     },
                   );
