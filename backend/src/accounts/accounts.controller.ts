@@ -65,10 +65,26 @@ export class AccountsController {
   }
 
   /**
-   * Delete account
+   * Delete account (soft delete)
    */
   @Delete(':id')
   remove(@Request() req, @Param('id') id: string) {
     return this.accountsService.remove(+id, req.user.id);
+  }
+
+  /**
+   * Restore soft deleted account
+   */
+  @Post(':id/restore')
+  restore(@Request() req, @Param('id') id: string) {
+    return this.accountsService.restore(+id, req.user.id);
+  }
+
+  /**
+   * Get all soft deleted accounts for user
+   */
+  @Get('deleted')
+  findDeleted(@Request() req) {
+    return this.accountsService.findDeletedByUser(req.user.id);
   }
 }

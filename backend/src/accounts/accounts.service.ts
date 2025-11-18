@@ -27,12 +27,13 @@ export class AccountsService {
   }
 
   /**
-   * Find all accounts for a user
+   * Find all accounts for a user (excluding soft deleted)
    */
   async findAllByUser(userId: number): Promise<Account[]> {
     const accounts = await this.accountsRepository.find({
       where: { userId },
       order: { createdAt: 'DESC' },
+      withDeleted: false,
     });
 
     const accountIds = accounts.map(account => account.id);
@@ -46,11 +47,12 @@ export class AccountsService {
   }
 
   /**
-   * Find account by ID (with user validation)
+   * Find account by ID (with user validation, excluding soft deleted)
    */
   async findOne(id: number, userId: number): Promise<Account> {
     const account = await this.accountsRepository.findOne({
       where: { id, userId },
+      withDeleted: false,
     });
 
     if (!account) {
@@ -74,20 +76,55 @@ export class AccountsService {
   }
 
   /**
-   * Delete account
+   * Delete account (soft delete)
    */
   async remove(id: number, userId: number): Promise<void> {
     await this.findOne(id, userId);
-    await this.accountsRepository.delete(id);
+    await this.accountsRepository.softDelete(id);
   }
 
   /**
-   * Get total balance for all user accounts
+   * Restore soft deleted account
+   */
+  async restore(id: number, userId: number): Promise<Account> {
+    // First check if the account exists (including soft deleted ones)
+    const account = await this.accountsRepository.findOne({
+      where: { id, userId },
+      withDeleted: true,
+    });
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    if (!account.deletedAt) {
+      throw new NotFoundException('Account is not deleted');
+    }
+
+    await this.accountsRepository.restore(id);
+
+    return this.findOne(id, userId);
+  }
+
+  /**
+   * Find all soft deleted accounts for a user
+   */
+  async findDeletedByUser(userId: number): Promise<Account[]> {
+    return await this.accountsRepository.find({
+      where: { userId },
+      withDeleted: true,
+      order: { deletedAt: 'DESC' },
+    }).then(accounts => accounts.filter(account => account.deletedAt));
+  }
+
+  /**
+   * Get total balance for all user accounts (excluding soft deleted)
    */
   async getTotalBalance(userId: number): Promise<number> {
     const accounts = await this.accountsRepository.find({
       where: { userId },
       select: ['id'],
+      withDeleted: false,
     });
 
     const accountIds = accounts.map(account => account.id);
@@ -104,6 +141,7 @@ export class AccountsService {
     const accounts = await this.accountsRepository.find({
       where: { id: In(accountIds) },
       select: ['id', 'balance'],
+      withDeleted: false,
     });
 
     const baseBalances: Record<number, number> = {};
