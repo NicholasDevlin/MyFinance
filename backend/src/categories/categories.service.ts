@@ -33,7 +33,7 @@ export class CategoriesService implements OnModuleInit {
         { name: 'Investment', type: CategoryType.INCOME, color: '#ffc107' },
         { name: 'Gift', type: CategoryType.INCOME, color: '#e83e8c' },
         { name: 'Other Income', type: CategoryType.INCOME, color: '#6f42c1' },
-        
+
         // Expense categories
         { name: 'Food & Dining', type: CategoryType.EXPENSE, color: '#dc3545' },
         { name: 'Transportation', type: CategoryType.EXPENSE, color: '#fd7e14' },

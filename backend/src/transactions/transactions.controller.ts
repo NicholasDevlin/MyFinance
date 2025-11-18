@@ -16,11 +16,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionType } from './entities/transaction.entity';
 
+@ApiTags('Transactions')
+@ApiBearerAuth('JWT-auth')
 @Controller('transactions')
 @UseGuards(AuthGuard('jwt'))
 export class TransactionsController {
@@ -31,6 +34,8 @@ export class TransactionsController {
    */
   @Post()
   @UseInterceptors(FileInterceptor('receipt'))
+  @ApiResponse({ status: 201, description: 'Transaction successfully created' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
   create(
     @Request() req,
     @Body() createTransactionDto: CreateTransactionDto,
@@ -46,13 +51,13 @@ export class TransactionsController {
   findAll(
     @Request() req,
     @Query('type') type?: TransactionType,
-    @Query('accountId', new ParseIntPipe({ optional: true })) accountId?: number,
-    @Query('categoryId', new ParseIntPipe({ optional: true })) categoryId?: number,
+    @Query('accountId') accountId?: number,
+    @Query('categoryId') categoryId?: number,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const start = startDate ? new Date(startDate) : undefined;
-    const end = endDate ? new Date(endDate) : undefined;
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
 
     return this.transactionsService.findAllByUser(
       req.user.id,
@@ -91,6 +96,8 @@ export class TransactionsController {
    * Update transaction
    */
   @Patch(':id')
+  @ApiResponse({ status: 201, description: 'Transaction successfully updated' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
   @UseInterceptors(FileInterceptor('receipt'))
   update(
     @Request() req,
@@ -98,7 +105,7 @@ export class TransactionsController {
     @Body() updateTransactionDto: UpdateTransactionDto,
     @UploadedFile() receiptFile?: Express.Multer.File,
   ) {
-    return this.transactionsService.update(req.user.id, id, updateTransactionDto, receiptFile);
+    return this.transactionsService.update(id, req.user.id, updateTransactionDto, receiptFile);
   }
 
   /**

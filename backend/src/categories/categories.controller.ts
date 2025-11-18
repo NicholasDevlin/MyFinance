@@ -10,11 +10,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryType } from './entities/category.entity';
 
+@ApiTags('Categories')
+@ApiBearerAuth('JWT-auth')
 @Controller('categories')
 @UseGuards(AuthGuard('jwt'))
 export class CategoriesController {
@@ -24,6 +27,8 @@ export class CategoriesController {
    * Create new category
    */
   @Post()
+  @ApiResponse({ status: 201, description: 'Categories successfully created' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
