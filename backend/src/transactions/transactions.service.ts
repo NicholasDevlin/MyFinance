@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Transaction, TransactionType } from './entities/transaction.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -32,9 +32,6 @@ export class TransactionsService {
     });
 
     const savedTransaction = await this.transactionsRepository.save(transaction);
-
-    // Update account balance
-    await this.updateAccountBalance(createTransactionDto.accountId, userId);
 
     return savedTransaction;
   }
@@ -104,10 +101,9 @@ export class TransactionsService {
     receiptFile?: Express.Multer.File,
   ): Promise<Transaction> {
     const transaction = await this.findOne(id, userId);
-    const oldAccountId = transaction.accountId;
 
     // If account is changing, verify new account belongs to user
-    if (updateTransactionDto.accountId && updateTransactionDto.accountId !== oldAccountId) {
+    if (updateTransactionDto.accountId && updateTransactionDto.accountId !== transaction.accountId) {
       await this.accountsService.findOne(updateTransactionDto.accountId, userId);
     }
 
@@ -118,13 +114,6 @@ export class TransactionsService {
 
     await this.transactionsRepository.update(id, updateData);
 
-    // Update account balances
-    const newAccountId = updateTransactionDto.accountId || oldAccountId;
-    await this.updateAccountBalance(oldAccountId, userId);
-    if (newAccountId !== oldAccountId) {
-      await this.updateAccountBalance(newAccountId, userId);
-    }
-
     return this.findOne(id, userId);
   }
 
@@ -133,12 +122,8 @@ export class TransactionsService {
    */
   async remove(id: number, userId: number): Promise<void> {
     const transaction = await this.findOne(id, userId);
-    const accountId = transaction.accountId;
 
     await this.transactionsRepository.delete(id);
-    
-    // Update account balance
-    await this.updateAccountBalance(accountId, userId);
   }
 
   /**
@@ -166,20 +151,5 @@ export class TransactionsService {
       netBalance: income - expenses,
       transactionCount: transactions.length,
     };
-  }
-
-  /**
-   * Update account balance based on transactions
-   */
-  private async updateAccountBalance(accountId: number, userId: number): Promise<void> {
-    const result = await this.transactionsRepository
-      .createQueryBuilder('transaction')
-      .select('SUM(CASE WHEN transaction.type = :income THEN transaction.amount ELSE -transaction.amount END)', 'balance')
-      .where('transaction.accountId = :accountId', { accountId })
-      .setParameter('income', TransactionType.INCOME)
-      .getRawOne();
-
-    const newBalance = parseFloat(result.balance) || 0;
-    await this.accountsService.updateBalance(accountId, userId, newBalance);
   }
 }
