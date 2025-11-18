@@ -14,7 +14,7 @@ class AccountsProvider with ChangeNotifier {
   List<Account> get accounts => _accounts;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  
+
   double get totalBalance {
     return _accounts.fold(0.0, (sum, account) => sum + account.balance);
   }
@@ -55,13 +55,11 @@ class AccountsProvider with ChangeNotifier {
       final newAccount = Account.fromJson(accountData);
       _accounts.insert(0, newAccount);
 
-      notifyListeners();
+      _setLoading(false);
       return true;
     } catch (e) {
       _setError('Failed to create account: $e');
       return false;
-    } finally {
-      _setLoading(false);
     }
   }
 
@@ -89,15 +87,13 @@ class AccountsProvider with ChangeNotifier {
       final index = _accounts.indexWhere((account) => account.id == id);
       if (index != -1) {
         _accounts[index] = updatedAccount;
-        notifyListeners();
       }
 
+      _setLoading(false);
       return true;
     } catch (e) {
       _setError('Failed to update account: $e');
       return false;
-    } finally {
-      _setLoading(false);
     }
   }
 
@@ -110,13 +106,11 @@ class AccountsProvider with ChangeNotifier {
       await _apiService.deleteAccount(id);
       _accounts.removeWhere((account) => account.id == id);
 
-      notifyListeners();
+      _setLoading(false);
       return true;
     } catch (e) {
       _setError('Failed to delete account: $e');
       return false;
-    } finally {
-      _setLoading(false);
     }
   }
 
@@ -152,5 +146,13 @@ class AccountsProvider with ChangeNotifier {
 
   void clearError() {
     _clearError();
+  }
+
+  void clearData() {
+    _accounts = [];
+    _error = null;
+    _isLoading = false;
+
+    notifyListeners();
   }
 }

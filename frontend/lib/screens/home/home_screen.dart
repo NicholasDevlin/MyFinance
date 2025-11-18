@@ -11,6 +11,7 @@ import '../transactions/add_income_screen.dart';
 import '../transactions/add_expense_screen.dart';
 import '../accounts/accounts_screen.dart';
 import '../transactions/transactions_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,42 +22,52 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  
+
   final List<Widget> _screens = [
     const DashboardTab(),
     const TransactionsScreen(),
     const AccountsScreen(),
-    const Center(child: Text('Profile')), // Placeholder for profile screen
+    const ProfileScreen(),
   ];
 
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+    });
   }
 
   Future<void> _loadInitialData() async {
+    if (!mounted) return;
+
     final accountsProvider = Provider.of<AccountsProvider>(context, listen: false);
     final transactionsProvider = Provider.of<TransactionsProvider>(context, listen: false);
     final categoriesProvider = Provider.of<CategoriesProvider>(context, listen: false);
     final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
 
-    // Load data concurrently
-    await Future.wait([
-      accountsProvider.loadAccounts(),
-      transactionsProvider.loadTransactions(),
-      categoriesProvider.loadCategories(),
-      dashboardProvider.loadDashboardData(),
-    ]);
+    try {
+      await Future.wait([
+        accountsProvider.loadAccounts(),
+        transactionsProvider.loadTransactions(),
+        categoriesProvider.loadCategories(),
+        dashboardProvider.loadDashboardData(),
+      ]).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Data loading timeout');
+        },
+      );
+    } catch (e) {
+      print('❌ Error loading initial data: $e');
+    }
   }
 
   void _showAddTransactionModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
@@ -175,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.pushReplacementNamed(context, '/login');
             });
+
             return const Center(child: CircularProgressIndicator());
           }
           

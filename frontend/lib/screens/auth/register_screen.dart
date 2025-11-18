@@ -34,16 +34,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
+
       final success = await authProvider.register(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        firstName: _firstNameController.text.trim().isEmpty 
-            ? null 
-            : _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim().isEmpty 
-            ? null 
-            : _lastNameController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text,
+        _firstNameController.text.trim().isEmpty ? null : _firstNameController.text.trim(),
+        _lastNameController.text.trim().isEmpty ? null : _lastNameController.text.trim(),
       );
 
       if (success && mounted) {
@@ -64,10 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
-        title: const Text('Create Account'),
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: AppTheme.primaryColor,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -78,8 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
-                
-                // Welcome Text
+
                 Text(
                   'Create Your Account',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -87,9 +79,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 10),
-                
+
                 Text(
                   'Join MyFinance and start managing your money',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -97,10 +89,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 40),
-                
-                // First Name Field
+
                 TextFormField(
                   controller: _firstNameController,
                   decoration: const InputDecoration(
@@ -108,10 +99,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icon(Icons.person_outline),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
-                // Last Name Field
+
                 TextFormField(
                   controller: _lastNameController,
                   decoration: const InputDecoration(
@@ -119,10 +109,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icon(Icons.person_outline),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
-                // Email Field
+
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -134,16 +123,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
+
                     if (!EmailValidator.validate(value)) {
                       return 'Please enter a valid email';
                     }
+
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 20),
-                
-                // Password Field
+
                 TextFormField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
@@ -167,16 +157,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a password';
                     }
+
                     if (value.length < 6) {
                       return 'Password must be at least 6 characters';
                     }
+
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 20),
-                
-                // Confirm Password Field
+
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: !_isConfirmPasswordVisible,
@@ -200,16 +191,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please confirm your password';
                     }
+
                     if (value != _passwordController.text) {
                       return 'Passwords do not match';
                     }
+
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 30),
-                
-                // Register Button
+
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
                     return ElevatedButton(
@@ -229,10 +221,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 20),
-                
-                // Login Link
+
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);

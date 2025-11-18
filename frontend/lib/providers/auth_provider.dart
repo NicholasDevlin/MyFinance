@@ -1,158 +1,125 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import 'package:dio/dio.dart';
 
 class AuthProvider with ChangeNotifier {
   final ApiService _apiService;
   User? _user;
   bool _isLoading = false;
   String? _error;
+  bool _isInitialized = false;
 
   AuthProvider(this._apiService) {
-    _checkAuthStatus();
+    _init();
   }
 
   // Getters
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get isLoggedIn => _user != null && _apiService.isLoggedIn;
+  bool get isLoggedIn => _user != null;
+  bool get isInitialized => _isInitialized;
 
-  // Check if user is already logged in
-  Future<void> _checkAuthStatus() async {
-    if (_apiService.isLoggedIn) {
-      try {
-        await loadUserProfile();
-      } catch (e) {
-        await logout();
-      }
-    }
+  Future<void> _init() async {
+    await _checkAuth();
+    _isInitialized = true;
+    notifyListeners();
   }
 
-  // Load user profile
-  Future<void> loadUserProfile() async {
+  Future<void> _checkAuth() async {
+    if (_isLoading) return;
+
+    final token = _apiService.getToken();
+    if (token == null) {
+      _clearAuth();
+
+      return;
+    }
+
     try {
-      _setLoading(true);
       final userData = await _apiService.getProfile();
-      _user = User.fromJson(userData);
-      _clearError();
+      _setAuth(User.fromJson(userData));
     } catch (e) {
-      _setError('Failed to load user profile: $e');
-      await logout();
-    } finally {
-      _setLoading(false);
+      if (e is DioException && e.response?.statusCode == 401) {
+        await _apiService.clearToken();
+        _clearAuth();
+      } else {
+        _error = 'Network error';
+        notifyListeners();
+      }
     }
   }
 
-  // Register new user
-  Future<bool> register({
-    required String email,
-    required String password,
-    String? firstName,
-    String? lastName,
-  }) async {
-    try {
-      _setLoading(true);
-      _clearError();
-
-      final response = await _apiService.register({
-        'email': email,
-        'password': password,
-        'firstName': firstName,
-        'lastName': lastName,
-      });
-
-      // Save token and user data
-      final accessToken = response['access_token'];
-      final userData = response['user'];
-      
-      if (accessToken == null) {
-        throw Exception('No access token received from server');
-      }
-      if (userData == null) {
-        throw Exception('No user data received from server');
-      }
-      
-      await _apiService.saveToken(accessToken);
-      _user = User.fromJson(userData);
-
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _setError('Registration failed: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Login user
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      _setLoading(true);
-      _clearError();
-
-      final response = await _apiService.login({
-        'email': email,
-        'password': password,
-      });
-
-      // Save token and user data
-      final accessToken = response['access_token'];
-      final userData = response['user'];
-      
-      if (accessToken == null) {
-        throw Exception('No access token received from server');
-      }
-      if (userData == null) {
-        throw Exception('No user data received from server');
-      }
-      
-      await _apiService.saveToken(accessToken);
-      _user = User.fromJson(userData);
-
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _setError('Login failed: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Logout user
-  Future<void> logout() async {
-    try {
-      await _apiService.clearToken();
-      _user = null;
-      _clearError();
-      notifyListeners();
-    } catch (e) {
-      _setError('Logout failed: $e');
-    }
-  }
-
-  // Helper methods
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void _setError(String error) {
-    _error = error;
-    notifyListeners();
-  }
-
-  void _clearError() {
+  void _setAuth(User user) {
+    _user = user;
     _error = null;
     notifyListeners();
   }
 
+  void _clearAuth() {
+    _user = null;
+    _error = null;
+    notifyListeners();
+  }
+
+  // Auth operations
+  Future<bool> login(String email, String password) async {
+    return _performAuth(() => _apiService.login({
+      'email': email,
+      'password': password,
+    }));
+  }
+
+  Future<bool> register(String email, String password, [String? firstName, String? lastName]) async {
+    return _performAuth(() => _apiService.register({
+      'email': email,
+      'password': password,
+      if (firstName != null) 'firstName': firstName,
+      if (lastName != null) 'lastName': lastName,
+    }));
+  }
+
+  Future<bool> _performAuth(Future<Map<String, dynamic>> Function() authCall) async {
+    if (_isLoading) return false;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await authCall();
+      final token = response['access_token'] as String?;
+      final userData = response['user'] as Map<String, dynamic>?;
+
+      if (token == null || userData == null) {
+        throw Exception('Invalid response from server');
+      }
+
+      await _apiService.saveToken(token);
+      _setAuth(User.fromJson(userData));
+
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> logout() async {
+    await _apiService.clearToken();
+    _clearAuth();
+  }
+
   void clearError() {
-    _clearError();
+    if (_error != null) {
+      _error = null;
+      notifyListeners();
+    }
   }
 }

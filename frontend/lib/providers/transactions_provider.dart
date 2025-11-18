@@ -15,11 +15,11 @@ class TransactionsProvider with ChangeNotifier {
   List<Transaction> get transactions => _transactions;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  
+
   List<Transaction> get incomeTransactions {
     return _transactions.where((t) => t.type == TransactionType.income).toList();
   }
-  
+
   List<Transaction> get expenseTransactions {
     return _transactions.where((t) => t.type == TransactionType.expense).toList();
   }
@@ -82,9 +82,11 @@ class TransactionsProvider with ChangeNotifier {
       _transactions.insert(0, newTransaction);
 
       notifyListeners();
+
       return true;
     } catch (e) {
       _setError('Failed to create transaction: $e');
+
       return false;
     } finally {
       _setLoading(false);
@@ -130,6 +132,7 @@ class TransactionsProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _setError('Failed to update transaction: $e');
+
       return false;
     } finally {
       _setLoading(false);
@@ -146,9 +149,11 @@ class TransactionsProvider with ChangeNotifier {
       _transactions.removeWhere((transaction) => transaction.id == id);
 
       notifyListeners();
+
       return true;
     } catch (e) {
       _setError('Failed to delete transaction: $e');
+
       return false;
     } finally {
       _setLoading(false);
@@ -169,7 +174,7 @@ class TransactionsProvider with ChangeNotifier {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
     final endOfMonth = DateTime(now.year, now.month + 1, 0);
-    
+
     return _transactions.where((transaction) {
       return transaction.date.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
              transaction.date.isBefore(endOfMonth.add(const Duration(days: 1)));
@@ -179,10 +184,10 @@ class TransactionsProvider with ChangeNotifier {
   // Calculate monthly summary
   Map<String, double> getCurrentMonthSummary() {
     final monthlyTransactions = getCurrentMonthTransactions();
-    
+
     double totalIncome = 0;
     double totalExpenses = 0;
-    
+
     for (final transaction in monthlyTransactions) {
       if (transaction.type == TransactionType.income) {
         totalIncome += transaction.amount;
@@ -190,7 +195,7 @@ class TransactionsProvider with ChangeNotifier {
         totalExpenses += transaction.amount;
       }
     }
-    
+
     return {
       'income': totalIncome,
       'expenses': totalExpenses,
@@ -216,5 +221,14 @@ class TransactionsProvider with ChangeNotifier {
 
   void clearError() {
     _clearError();
+  }
+
+  // Clear all data (called when user logs out)
+  void clearData() {
+    _transactions = [];
+    _error = null;
+    _isLoading = false;
+
+    notifyListeners();
   }
 }

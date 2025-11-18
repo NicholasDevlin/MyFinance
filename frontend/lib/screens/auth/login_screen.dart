@@ -30,8 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       
       final success = await authProvider.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+        _emailController.text.trim(),
+        _passwordController.text,
       );
 
       if (success && mounted) {
@@ -60,8 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 60),
-                
-                // App Logo
+
                 Center(
                   child: Container(
                     width: 100,
@@ -77,10 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 30),
-                
-                // Welcome Text
+
                 Text(
                   'Welcome Back',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -88,9 +86,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 10),
-                
+
                 Text(
                   'Sign in to continue to MyFinance',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -98,10 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 50),
-                
-                // Email Field
+
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -113,16 +110,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
+
                     if (!EmailValidator.validate(value)) {
                       return 'Please enter a valid email';
                     }
+
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 20),
-                
-                // Password Field
+
                 TextFormField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
@@ -146,16 +144,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
                     }
+
                     if (value.length < 6) {
                       return 'Password must be at least 6 characters';
                     }
+
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 30),
-                
-                // Login Button
+
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
                     return ElevatedButton(
@@ -175,10 +174,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 20),
-                
-                // Register Link
+
                 TextButton(
                   onPressed: () {
                     Navigator.push(

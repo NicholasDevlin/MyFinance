@@ -10,7 +10,6 @@ class DashboardProvider with ChangeNotifier {
 
   DashboardProvider(this._apiService);
 
-  // Getters
   Map<String, dynamic>? get dashboardData => _dashboardData;
   List<dynamic> get spendingByCategory => _spendingByCategory;
   bool get isLoading => _isLoading;
@@ -103,6 +102,16 @@ class DashboardProvider with ChangeNotifier {
 
   void clearError() {
     _clearError();
+  }
+
+  // Clear all data (called when user logs out)
+  void clearData() {
+    _dashboardData = null;
+    _spendingByCategory = [];
+    _error = null;
+    _isLoading = false;
+
+    notifyListeners();
   }
 
   // Refresh all dashboard data
