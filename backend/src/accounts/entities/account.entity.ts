@@ -57,4 +57,9 @@ export class Account {
 
   @OneToMany(() => Transaction, (transaction) => transaction.account)
   transactions: Transaction[];
+
+  // Virtual fields for frontend (not stored in database)
+  transactionCount?: number;
+
+  canModify?: boolean;
 }

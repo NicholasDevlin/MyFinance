@@ -109,7 +109,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
             onRefresh: accountsProvider.loadAccounts,
             child: Column(
               children: [
-                // Total Balance Card
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.all(16),
@@ -144,7 +143,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   ),
                 ),
 
-                // Accounts List
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -190,32 +188,79 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
+
             ListTile(
               title: Text(account.name),
               subtitle: Text('${account.type.displayName} • ${account.formattedBalance}'),
             ),
+
             const Divider(),
+
             ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Edit Account'),
-              onTap: () {
+              leading: Icon(
+                Icons.edit,
+                color: account.canModify ? null : Colors.grey,
+              ),
+              title: Text(
+                'Edit Account',
+                style: TextStyle(
+                  color: account.canModify ? null : Colors.grey,
+                ),
+              ),
+              subtitle: account.canModify ? null : Text(
+                'Cannot edit account with ${account.transactionCount} transaction(s)',
+                style: const TextStyle(color: Colors.orange, fontSize: 12),
+              ),
+              onTap: account.canModify ? () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AccountFormScreen(account: account), // Pass account = edit mode
+                    builder: (context) => AccountFormScreen(account: account),
+                  ),
+                );
+              } : () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Cannot edit account that has ${account.transactionCount} transaction(s). Please delete all transactions first.'),
+                    backgroundColor: Colors.orange,
+                    duration: const Duration(seconds: 4),
                   ),
                 );
               },
             ),
+
             ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
-              onTap: () {
+              leading: Icon(
+                Icons.delete,
+                color: account.canModify ? Colors.red : Colors.grey,
+              ),
+              title: Text(
+                'Delete Account',
+                style: TextStyle(
+                  color: account.canModify ? Colors.red : Colors.grey,
+                ),
+              ),
+              subtitle: account.canModify ? null : Text(
+                'Cannot delete account with ${account.transactionCount} transaction(s)',
+                style: const TextStyle(color: Colors.orange, fontSize: 12),
+              ),
+              onTap: account.canModify ? () {
                 Navigator.pop(context);
                 _showDeleteConfirmation(account);
+              } : () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Cannot delete account that has ${account.transactionCount} transaction(s). Please delete all transactions first.'),
+                    backgroundColor: Colors.orange,
+                    duration: const Duration(seconds: 4),
+                  ),
+                );
               },
             ),
+
             const SizedBox(height: 20),
           ],
         ),

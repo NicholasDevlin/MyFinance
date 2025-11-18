@@ -24,6 +24,8 @@ class Account {
   final String? description;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int transactionCount;
+  final bool canModify;
 
   Account({
     required this.id,
@@ -33,6 +35,8 @@ class Account {
     this.description,
     required this.createdAt,
     required this.updatedAt,
+    this.transactionCount = 0,
+    this.canModify = true,
   });
 
   factory Account.fromJson(Map<String, dynamic> json) {
@@ -44,6 +48,8 @@ class Account {
       description: json['description'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
+      transactionCount: json['transactionCount'] ?? 0,
+      canModify: json['canModify'] ?? true,
     );
   }
 
@@ -56,6 +62,8 @@ class Account {
       'description': description,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'transactionCount': transactionCount,
+      'canModify': canModify,
     };
   }
 

@@ -75,6 +75,14 @@ class AccountsProvider with ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      final account = _accounts.firstWhere((acc) => acc.id == id);
+      if (!account.canModify) {
+        _setError('Cannot modify account that has transactions. Please delete all transactions first.');
+        _setLoading(false);
+
+        return false;
+      }
+
       final updateData = <String, dynamic>{};
       if (name != null) updateData['name'] = name;
       if (type != null) updateData['type'] = type.value;
@@ -102,6 +110,14 @@ class AccountsProvider with ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
+
+      // Check if account can be modified first
+      final account = _accounts.firstWhere((acc) => acc.id == id);
+      if (!account.canModify) {
+        _setError('Cannot delete account that has transactions. Please delete all transactions first.');
+        _setLoading(false);
+        return false;
+      }
 
       await _apiService.deleteAccount(id);
       _accounts.removeWhere((account) => account.id == id);

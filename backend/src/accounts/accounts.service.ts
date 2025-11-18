@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Account } from './entities/account.entity';
@@ -27,13 +27,25 @@ export class AccountsService {
   }
 
   /**
-   * Find all accounts for a user (excluding soft deleted)
+   * Find all accounts for a user with transaction counts (excluding soft deleted)
    */
   async findAllByUser(userId: number): Promise<Account[]> {
-    const accounts = await this.accountsRepository.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-      withDeleted: false,
+    const accountsWithCounts = await this.accountsRepository
+      .createQueryBuilder('account')
+      .leftJoin('account.transactions', 'transaction')
+      .addSelect('COUNT(transaction.id)', 'transactionCount')
+      .where('account.userId = :userId', { userId })
+      .andWhere('account.deletedAt IS NULL')
+      .groupBy('account.id')
+      .orderBy('account.createdAt', 'DESC')
+      .getRawAndEntities();
+
+    const accounts = accountsWithCounts.entities;
+    const rawResults = accountsWithCounts.raw;
+
+    accounts.forEach((account, index) => {
+      (account as any).transactionCount = parseInt(rawResults[index].transactionCount) || 0;
+      (account as any).canModify = (account as any).transactionCount === 0;
     });
 
     const accountIds = accounts.map(account => account.id);
@@ -70,6 +82,8 @@ export class AccountsService {
    */
   async update(id: number, userId: number, updateAccountDto: UpdateAccountDto): Promise<Account> {
     await this.findOne(id, userId);
+    await this.validateAccountHasNoTransactions(id);
+
     await this.accountsRepository.update(id, updateAccountDto);
 
     return this.findOne(id, userId);
@@ -80,6 +94,8 @@ export class AccountsService {
    */
   async remove(id: number, userId: number): Promise<void> {
     await this.findOne(id, userId);
+    await this.validateAccountHasNoTransactions(id);
+    
     await this.accountsRepository.softDelete(id);
   }
 
@@ -115,6 +131,21 @@ export class AccountsService {
       withDeleted: true,
       order: { deletedAt: 'DESC' },
     }).then(accounts => accounts.filter(account => account.deletedAt));
+  }
+
+  /**
+   * Validate that account has no transactions before allowing modifications
+   */
+  private async validateAccountHasNoTransactions(accountId: number): Promise<void> {
+    const transactionCount = await this.transactionsRepository.count({
+      where: { accountId }
+    });
+
+    if (transactionCount > 0) {
+      throw new BadRequestException(
+        `Cannot modify account because it has ${transactionCount} transaction(s). Please delete all transactions first.`
+      );
+    }
   }
 
   /**
