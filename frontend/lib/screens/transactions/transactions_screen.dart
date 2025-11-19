@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 import '../../providers/transactions_provider.dart';
 import '../../models/transaction.dart';
 import '../../theme/app_theme.dart';
-import 'add_income_screen.dart';
-import 'add_expense_screen.dart';
+import 'transaction_form_screen.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -16,7 +15,7 @@ class TransactionsScreen extends StatefulWidget {
 
 class _TransactionsScreenState extends State<TransactionsScreen> with TickerProviderStateMixin {
   late TabController _tabController;
-  
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +38,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
         title: const Text('Transactions'),
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white60,
           tabs: const [
             Tab(text: 'All'),
             Tab(text: 'Income'),
@@ -93,21 +94,27 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                   size: 80,
                   color: Colors.grey[400],
                 ),
+
                 const SizedBox(height: 16),
+
                 Text(
                   'No transactions yet',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: Colors.grey[600],
                   ),
                 ),
+
                 const SizedBox(height: 8),
+
                 Text(
                   'Add your first transaction to get started',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Colors.grey[500],
                   ),
                 ),
+
                 const SizedBox(height: 24),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -116,7 +123,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const AddIncomeScreen(),
+                            builder: (context) => const TransactionFormScreen(
+                              initialType: TransactionType.income,
+                            ),
                           ),
                         );
                       },
@@ -126,13 +135,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                         backgroundColor: AppTheme.successColor,
                       ),
                     ),
+
                     const SizedBox(width: 12),
+
                     ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const AddExpenseScreen(),
+                            builder: (context) => const TransactionFormScreen(
+                              initialType: TransactionType.expense,
+                            ),
                           ),
                         );
                       },
@@ -267,7 +280,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                     ),
                     const SizedBox(height: 20),
                     
-                    // Transaction Amount
                     Center(
                       child: Text(
                         transaction.displayAmount,
@@ -283,7 +295,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                     
                     const SizedBox(height: 20),
                     
-                    // Transaction Details
                     _buildDetailRow('Category', transaction.category?.name ?? 'Uncategorized'),
                     _buildDetailRow('Account', transaction.account.name),
                     _buildDetailRow('Date', DateFormat('EEEE, MMMM dd, yyyy').format(transaction.date)),
@@ -321,6 +332,51 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                         ),
                       ),
                     ],
+
+                    const SizedBox(height: 30),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TransactionFormScreen(
+                                    transaction: transaction,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.edit),
+                            label: const Text('Edit'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.primaryColor,
+                              side: const BorderSide(color: AppTheme.primaryColor),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _showDeleteConfirmation(transaction);
+                            },
+                            icon: const Icon(Icons.delete),
+                            label: const Text('Delete'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -347,11 +403,50 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
               ),
             ),
           ),
+
           Expanded(
             child: Text(
               value,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(Transaction transaction) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Transaction'),
+        content: Text(
+          'Are you sure you want to delete this ${transaction.type.displayName.toLowerCase()} of ${transaction.formattedAmount}? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final transactionsProvider = Provider.of<TransactionsProvider>(context, listen: false);
+              final success = await transactionsProvider.deleteTransaction(transaction.id);
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success 
+                      ? 'Transaction deleted successfully' 
+                      : transactionsProvider.error ?? 'Failed to delete transaction'),
+                    backgroundColor: success ? AppTheme.successColor : AppTheme.errorColor,
+                  ),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

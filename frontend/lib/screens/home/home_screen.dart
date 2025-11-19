@@ -7,8 +7,8 @@ import '../../providers/categories_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../theme/app_theme.dart';
 import 'dashboard_tab.dart';
-import '../transactions/add_income_screen.dart';
-import '../transactions/add_expense_screen.dart';
+import '../transactions/transaction_form_screen.dart';
+import '../../models/transaction.dart';
 import '../accounts/accounts_screen.dart';
 import '../transactions/transactions_screen.dart';
 import '../profile/profile_screen.dart';
@@ -82,6 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -90,7 +91,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Add Transaction',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
+
                   const SizedBox(height: 20),
+
                   Row(
                     children: [
                       Expanded(
@@ -104,13 +107,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AddIncomeScreen(),
+                                builder: (context) => const TransactionFormScreen(
+                                  initialType: TransactionType.income,
+                                ),
                               ),
                             );
                           },
                         ),
                       ),
+
                       const SizedBox(width: 16),
+
                       Expanded(
                         child: _buildTransactionTypeCard(
                           context,
@@ -122,7 +129,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AddExpenseScreen(),
+                                builder: (context) => const TransactionFormScreen(
+                                  initialType: TransactionType.expense,
+                                ),
                               ),
                             );
                           },
@@ -130,6 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 20),
                 ],
               ),

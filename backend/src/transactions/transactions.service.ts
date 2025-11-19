@@ -22,7 +22,6 @@ export class TransactionsService {
     createTransactionDto: CreateTransactionDto,
     receiptFile?: Express.Multer.File,
   ): Promise<Transaction> {
-    // Verify account belongs to user
     await this.accountsService.findOne(createTransactionDto.accountId, userId);
 
     const transaction = this.transactionsRepository.create({
@@ -33,7 +32,7 @@ export class TransactionsService {
 
     const savedTransaction = await this.transactionsRepository.save(transaction);
 
-    return savedTransaction;
+    return await this.findOne(savedTransaction.id, userId);
   }
 
   /**
