@@ -256,6 +256,85 @@ For support and questions:
 - Create an issue on GitHub
 - Contact the development team
 
+## 📡 API Endpoints
+
+The MyFinance backend provides a comprehensive RESTful API with the following endpoints:
+
+### 🔐 Authentication (`/auth`)
+| Method | Endpoint | Description | Authentication |
+|--------|----------|-------------|----------------|
+| `POST` | `/auth/register` | Register new user | None |
+| `POST` | `/auth/login` | Login user | None |
+| `GET` | `/auth/profile` | Get current user profile | JWT Required |
+
+### 👤 Users (`/users`)
+| Method | Endpoint | Description | Authentication |
+|--------|----------|-------------|----------------|
+| `GET` | `/users/profile` | Get current user profile | JWT Required |
+| `PATCH` | `/users/profile` | Update current user profile | JWT Required |
+| `GET` | `/users/:id` | Get user by ID | JWT Required |
+| `PATCH` | `/users/:id` | Update user by ID | JWT Required |
+| `DELETE` | `/users/:id` | Delete user by ID | JWT Required |
+
+### 🏦 Accounts (`/accounts`)
+| Method | Endpoint | Description | Authentication |
+|--------|----------|-------------|----------------|
+| `POST` | `/accounts` | Create new account | JWT Required |
+| `GET` | `/accounts` | Get all user accounts | JWT Required |
+| `GET` | `/accounts/total-balance` | Get total balance across all accounts | JWT Required |
+| `GET` | `/accounts/:id` | Get account by ID | JWT Required |
+| `PATCH` | `/accounts/:id` | Update account | JWT Required |
+| `DELETE` | `/accounts/:id` | Delete account (soft delete) | JWT Required |
+| `POST` | `/accounts/:id/restore` | Restore soft deleted account | JWT Required |
+| `GET` | `/accounts/deleted` | Get all soft deleted accounts | JWT Required |
+
+### 🏷️ Categories (`/categories`)
+| Method | Endpoint | Description | Authentication |
+|--------|----------|-------------|----------------|
+| `POST` | `/categories` | Create new category | JWT Required |
+| `GET` | `/categories` | Get all categories | JWT Required |
+| `GET` | `/categories?type={type}` | Filter categories by type | JWT Required |
+| `GET` | `/categories/:id` | Get category by ID | JWT Required |
+| `PATCH` | `/categories/:id` | Update category | JWT Required |
+| `DELETE` | `/categories/:id` | Delete category | JWT Required |
+
+### 💳 Transactions (`/transactions`)
+| Method | Endpoint | Description | Authentication |
+|--------|----------|-------------|----------------|
+| `POST` | `/transactions` | Create transaction with optional receipt upload | JWT Required |
+| `GET` | `/transactions` | Get transactions with filters & pagination | JWT Required |
+| `GET` | `/transactions/summary/:year/:month` | Get monthly summary | JWT Required |
+| `GET` | `/transactions/:id` | Get transaction by ID | JWT Required |
+| `PATCH` | `/transactions/:id` | Update transaction with optional receipt | JWT Required |
+| `DELETE` | `/transactions/:id` | Delete transaction | JWT Required |
+
+#### Transaction Query Parameters
+- `page` - Page number (default: 1)
+- `limit` - Items per page (default: 10, max: 100)
+- `type` - Filter by transaction type (`INCOME`, `EXPENSE`)
+- `accountId` - Filter by account ID
+- `categoryId` - Filter by category ID
+- `startDate` - Start date filter (ISO string)
+- `endDate` - End date filter (ISO string)
+
+### 📊 Dashboard (`/dashboard`)
+| Method | Endpoint | Description | Authentication |
+|--------|----------|-------------|----------------|
+| `GET` | `/dashboard` | Get main dashboard data | JWT Required |
+| `GET` | `/dashboard/yearly/:year` | Get yearly overview | JWT Required |
+| `GET` | `/dashboard/spending-by-category` | Get spending by category | JWT Required |
+
+### 📎 File Uploads
+- Receipt images are uploaded via multipart form data
+- Supported formats: JPG, PNG, GIF
+- Files are automatically renamed with format: `receipt-{timestamp}-{random}.{ext}`
+- Accessible via: `GET /uploads/receipts/{filename}`
+
+### 🔒 Authentication
+- Most endpoints require JWT authentication
+- Include JWT token in Authorization header: `Bearer <token>`
+- Tokens are obtained via `/auth/login` endpoint
+
 ## 🎯 Future Enhancements
 
 - **Budgeting**: Set and track spending budgets
