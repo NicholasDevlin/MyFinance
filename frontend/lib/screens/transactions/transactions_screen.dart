@@ -8,6 +8,7 @@ import '../../providers/drawer_provider.dart';
 import '../../models/transaction.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/transaction_filter_drawer.dart';
+import '../../services/api_service.dart';
 import 'transaction_form_screen.dart';
 
 class TransactionsScreen extends StatefulWidget {
@@ -409,7 +410,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          'http://10.0.2.2:3000/uploads/${transaction.receiptImage}',
+                          '${ApiService.baseUrl}/uploads/receipts/${transaction.receiptImage}',
                           width: double.infinity,
                           height: 200,
                           fit: BoxFit.cover,

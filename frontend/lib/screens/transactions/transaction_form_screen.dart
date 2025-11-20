@@ -483,6 +483,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                               'Receipt (Optional)',
                               style: TextStyle(fontWeight: FontWeight.w500),
                             ),
+
                             TextButton.icon(
                               onPressed: _pickImage,
                               icon: const Icon(Icons.camera_alt),
@@ -544,6 +545,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
                         if (_receiptImage != null) ...[
                           const SizedBox(height: 10),
+
                           Stack(
                             children: [
                               ClipRRect(
