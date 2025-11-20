@@ -226,6 +226,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         );
 
         if (success) {
+          final accountsProvider = Provider.of<AccountsProvider>(context, listen: false);
+          accountsProvider.loadAccounts();
+
           Navigator.pop(context);
         }
       }
