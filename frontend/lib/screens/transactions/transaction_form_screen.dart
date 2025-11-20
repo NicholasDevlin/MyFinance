@@ -73,11 +73,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         ? CategoryType.income 
         : CategoryType.expense;
 
-      if (_transactionType == TransactionType.income
-          && categoriesProvider.incomeCategories.isEmpty) {
+      if (_transactionType == TransactionType.income && categoriesProvider.incomeCategories.isEmpty) {
         categoriesProvider.loadCategories(type: categoryType);
-      } else if (_transactionType == TransactionType.expense
-          && categoriesProvider.expenseCategories.isEmpty) {
+      } else if (_transactionType == TransactionType.expense && categoriesProvider.expenseCategories.isEmpty) {
         categoriesProvider.loadCategories(type: categoryType);
       }
     });
@@ -179,6 +177,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         );
 
         if (success) {
+          final accountsProvider = Provider.of<AccountsProvider>(context, listen: false);
+          accountsProvider.loadAccounts();
+
           Navigator.pop(context);
         }
       }
@@ -222,6 +223,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         );
 
         if (success) {
+          final accountsProvider = Provider.of<AccountsProvider>(context, listen: false);
+          accountsProvider.loadAccounts();
+
           Navigator.pop(context);
         }
       }
