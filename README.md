@@ -7,17 +7,25 @@ A full-stack personal finance management application built with Flutter (fronten
 ### User Management
 - **User Registration & Authentication**: JWT-based secure authentication
 - **User Profile Management**: Manage personal information and preferences
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/99df134f-fa0c-40b3-b489-18dc3c5d79c1" />
 
 ### Account Management
 - **Multiple Account Types**: Support for bank accounts, cash, credit cards, and e-wallets
 - **Real-time Balance Tracking**: Automatic balance updates based on transactions
 - **Account Overview**: Visual representation of all accounts and total balance
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/92bc75cb-abb0-4878-8111-00aaa1e72557" />
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/86894349-4207-4336-87ee-c50a497b3498" />
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/52abd667-6a6e-4663-8fd9-36e436856b47" />
 
 ### Transaction Management
 - **Income Tracking**: Record income with amount, date, source, and category
 - **Expense Tracking**: Track expenses with receipt image upload support
 - **Transaction Categories**: Predefined and custom categories for better organization
 - **Transaction History**: Comprehensive list with filtering and search capabilities
+<img width="1344" height="2992" alt="image" src="https://github.com/user-attachments/assets/bb202c61-0ede-429e-9eb6-394d79ee118d" />
+<img width="1344" height="2992" alt="image" src="https://github.com/user-attachments/assets/cc7a4068-b864-404e-b4cf-6977f3624359" />
+<img width="1344" height="2992" alt="image" src="https://github.com/user-attachments/assets/3f4d90a2-15cc-4fd9-9320-8ab7d763d337" />
+
 
 ### Dashboard & Analytics
 - **Monthly Overview**: Income vs expenses comparison charts
