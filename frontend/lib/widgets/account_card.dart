@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../models/account.dart';
 import '../theme/app_theme.dart';
 import '../utils/number_formatter.dart';
@@ -81,7 +82,7 @@ class AccountCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AutoSizeText(
                       name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -97,20 +98,25 @@ class AccountCard extends StatelessWidget {
                   ),
                 ],
               ),
+
               const SizedBox(height: 8),
+
               Text(
                 getAccountTypeName(),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: color.withOpacity(0.8),
                 ),
               ),
+
               const SizedBox(height: 8),
-              Text(
+
+              AutoSizeText(
                 NumberFormatter.formatCurrency(balance),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
+                maxLines: 1,
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../utils/number_formatter.dart';
 
 class DashboardCard extends StatelessWidget {
@@ -53,22 +54,15 @@ class DashboardCard extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            Text(
+            AutoSizeText(
               NumberFormatter.formatCurrency(amount),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,
+                fontSize: 18,
               ),
+              maxLines: 1,
             ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                subtitle!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
           ],
         ),
       ),

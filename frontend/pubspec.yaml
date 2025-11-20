@@ -39,6 +39,9 @@ dependencies:
   
   # Loading indicators
   flutter_spinkit: ^5.2.0
+  
+  # Auto-sizing text
+  auto_size_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:

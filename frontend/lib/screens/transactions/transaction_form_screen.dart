@@ -609,6 +609,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   border: OutlineInputBorder(),
                 ),
               ),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
