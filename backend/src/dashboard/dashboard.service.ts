@@ -102,14 +102,18 @@ export class DashboardService {
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const expenses = await this.transactionsService.findAllByUser(
+    const expensesResult = await this.transactionsService.findAllByUser(
       userId,
-      undefined,
-      undefined,
-      undefined,
+      1,
+      10000,
+      null, // type
+      null, // accountId
+      null, // categoryId
       startDate,
       endDate,
     );
+    
+    const expenses = expensesResult.data;
 
     const categoryTotals = expenses
       .filter(t => t.type === 'expense')
@@ -142,6 +146,7 @@ export class DashboardService {
     if (oldValue === 0) {
       return newValue > 0 ? 100 : 0;
     }
+
     return ((newValue - oldValue) / Math.abs(oldValue)) * 100;
   }
 }

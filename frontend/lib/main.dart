@@ -7,6 +7,7 @@ import 'providers/accounts_provider.dart';
 import 'providers/transactions_provider.dart';
 import 'providers/categories_provider.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/drawer_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -73,6 +74,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Provider<ApiService>.value(value: widget.apiService),
         
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
+        ChangeNotifierProvider<DrawerProvider>(
+          create: (_) => DrawerProvider(),
+        ),
         ChangeNotifierProxyProvider<AuthProvider, AccountsProvider>(
           create: (_) => AccountsProvider(widget.apiService),
           update: (_, auth, previous) {

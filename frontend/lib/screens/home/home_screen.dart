@@ -5,6 +5,7 @@ import '../../providers/accounts_provider.dart';
 import '../../providers/transactions_provider.dart';
 import '../../providers/categories_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/drawer_provider.dart';
 import '../../theme/app_theme.dart';
 import 'dashboard_tab.dart';
 import '../transactions/transaction_form_screen.dart';
@@ -199,16 +200,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           return _screens[_currentIndex];
         },
       ),
-      floatingActionButton: _currentIndex == 0 || _currentIndex == 1
-          ? FloatingActionButton(
-              onPressed: _showAddTransactionModal,
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: Consumer<DrawerProvider>(
+        builder: (context, drawerProvider, child) {
+          return [0, 1].contains(_currentIndex) && !drawerProvider.isDrawerOpen
+              ? FloatingActionButton(
+                  onPressed: _showAddTransactionModal,
+                  child: const Icon(Icons.add),
+                )
+              : const SizedBox.shrink();
+        },
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,

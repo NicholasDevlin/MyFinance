@@ -45,22 +45,37 @@ export class TransactionsController {
   }
 
   /**
-   * Get all transactions for user with optional filters
+   * Get all transactions for user with optional filters and pagination
    */
   @Get()
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'type', required: false, enum: TransactionType })
+  @ApiQuery({ name: 'accountId', required: false, type: Number })
+  @ApiQuery({ name: 'categoryId', required: false, type: Number })
+  @ApiQuery({ name: 'startDate', required: false, type: String })
+  @ApiQuery({ name: 'endDate', required: false, type: String })
   findAll(
     @Request() req,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
     @Query('type') type?: TransactionType,
     @Query('accountId') accountId?: number,
     @Query('categoryId') categoryId?: number,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const start = startDate ? new Date(startDate) : null;
-    const end = endDate ? new Date(endDate) : null;
+    const pageNumber = page && page > 0 ? page : 1;
+    const pageSize = limit && limit > 0 && limit <= 100 ? limit : 10;
+
+    const now = new Date();
+    const start = startDate ? new Date(startDate) : new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = endDate ? new Date(endDate) : now;
 
     return this.transactionsService.findAllByUser(
       req.user.id,
+      pageNumber,
+      pageSize,
       type,
       accountId,
       categoryId,

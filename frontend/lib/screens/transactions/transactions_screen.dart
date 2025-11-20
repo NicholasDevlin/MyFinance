@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/transactions_provider.dart';
+import '../../providers/accounts_provider.dart';
+import '../../providers/categories_provider.dart';
+import '../../providers/drawer_provider.dart';
 import '../../models/transaction.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/transaction_filter_drawer.dart';
 import 'transaction_form_screen.dart';
 
 class TransactionsScreen extends StatefulWidget {
@@ -15,20 +19,44 @@ class TransactionsScreen extends StatefulWidget {
 
 class _TransactionsScreenState extends State<TransactionsScreen> with TickerProviderStateMixin {
   late TabController _tabController;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _scrollController.addListener(_onScroll);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TransactionsProvider>(context, listen: false).loadTransactions();
+      // Load accounts and categories for filtering
+      Provider.of<AccountsProvider>(context, listen: false).loadAccounts();
+      Provider.of<CategoriesProvider>(context, listen: false).loadCategories();
+      Provider.of<TransactionsProvider>(context, listen: false).loadTransactions(refresh: true);
     });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    final transactionsProvider = Provider.of<TransactionsProvider>(context, listen: false);
+
+    // Only trigger if we're near the bottom and not already loading more
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200
+        && !transactionsProvider.isLoadingMore
+        && transactionsProvider.hasNextPage) {
+
+      final currentTabIndex = _tabController.index;
+      TransactionType? type;
+      if (currentTabIndex == 1) type = TransactionType.income;
+      if (currentTabIndex == 2) type = TransactionType.expense;
+
+      transactionsProvider.loadTransactions(type: type, loadMore: true);
+    }
   }
 
   @override
@@ -36,6 +64,46 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transactions'),
+        actions: [
+          Consumer<TransactionsProvider>(
+            builder: (context, provider, child) {
+              final hasFilters = provider.filterAccountId != null
+                  || provider.filterCategoryId != null
+                  || (
+                      provider.filterStartDate != null && provider.filterEndDate != null
+                      && (
+                          provider.filterStartDate!.month != DateTime.now().month
+                          || provider.filterStartDate!.year != DateTime.now().year
+                          || provider.filterEndDate!.day != DateTime.now().day
+                      )
+                  );
+
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.filter_list),
+                    onPressed: () {
+                      Scaffold.of(context).openEndDrawer();
+                    },
+                  ),
+                  if (hasFilters)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.orange,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
@@ -47,6 +115,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
           ],
         ),
       ),
+      endDrawer: const TransactionFilterDrawer(),
+      onEndDrawerChanged: (isOpened) {
+        Provider.of<DrawerProvider>(context, listen: false).setDrawerOpen(isOpened);
+      },
       body: Consumer<TransactionsProvider>(
         builder: (context, transactionsProvider, child) {
           return TabBarView(
@@ -76,7 +148,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
               children: [
                 Text(transactionsProvider.error!),
                 ElevatedButton(
-                  onPressed: () => transactionsProvider.loadTransactions(),
+                  onPressed: () => transactionsProvider.loadTransactions(refresh: true),
                   child: const Text('Retry'),
                 ),
               ],
@@ -163,13 +235,33 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
         }
 
         return RefreshIndicator(
-          onRefresh: transactionsProvider.loadTransactions,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: transactions.length,
-            itemBuilder: (context, index) {
-              final transaction = transactions[index];
-              return _buildTransactionCard(transaction);
+          onRefresh: () => transactionsProvider.loadTransactions(refresh: true),
+          child: Consumer<TransactionsProvider>(
+            builder: (context, provider, child) {
+              final itemCount = transactions.length + (provider.hasNextPage ? 1 : 0);
+
+              return ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: itemCount,
+                itemBuilder: (context, index) {
+                  // Show loading indicator at the bottom if there are more items
+                  if (index == transactions.length) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Center(
+                        child: provider.isLoadingMore
+                            ? const CircularProgressIndicator()
+                            : const SizedBox.shrink(),
+                      ),
+                    );
+                  }
+
+                  final transaction = transactions[index];
+
+                  return _buildTransactionCard(transaction);
+                },
+              );
             },
           ),
         );
@@ -180,7 +272,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
   Widget _buildTransactionCard(Transaction transaction) {
     final isIncome = transaction.type == TransactionType.income;
     final color = isIncome ? AppTheme.successColor : AppTheme.errorColor;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -278,8 +370,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 20),
-                    
+
                     Center(
                       child: Text(
                         transaction.displayAmount,
@@ -292,17 +385,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> with TickerProv
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     _buildDetailRow('Category', transaction.category?.name ?? 'Uncategorized'),
                     _buildDetailRow('Account', transaction.account.name),
                     _buildDetailRow('Date', DateFormat('EEEE, MMMM dd, yyyy').format(transaction.date)),
                     _buildDetailRow('Type', transaction.type.displayName),
-                    
+
                     if (transaction.note != null)
                       _buildDetailRow('Note', transaction.note!),
-                    
+
                     if (transaction.receiptImage != null) ...[
                       const SizedBox(height: 20),
                       const Text(

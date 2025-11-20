@@ -7,14 +7,39 @@ class TransactionsProvider with ChangeNotifier {
   final ApiService _apiService;
   List<Transaction> _transactions = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
 
-  TransactionsProvider(this._apiService);
+  // Pagination
+  int _currentPage = 1;
+  bool _hasNextPage = true;
+  int _total = 0;
+
+  // Filters
+  int? _filterAccountId;
+  int? _filterCategoryId;
+  DateTime? _filterStartDate;
+  DateTime? _filterEndDate;
+
+  TransactionsProvider(this._apiService) {
+    final now = DateTime.now();
+    _filterStartDate = DateTime(now.year, now.month, 1);
+    _filterEndDate = DateTime.now();
+  }
 
   // Getters
   List<Transaction> get transactions => _transactions;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
+  bool get hasNextPage => _hasNextPage;
+  int get total => _total;
+
+  // Filter getters
+  int? get filterAccountId => _filterAccountId;
+  int? get filterCategoryId => _filterCategoryId;
+  DateTime? get filterStartDate => _filterStartDate;
+  DateTime? get filterEndDate => _filterEndDate;
 
   List<Transaction> get incomeTransactions {
     return _transactions.where((t) => t.type == TransactionType.income).toList();
@@ -24,32 +49,89 @@ class TransactionsProvider with ChangeNotifier {
     return _transactions.where((t) => t.type == TransactionType.expense).toList();
   }
 
-  // Load transactions with optional filters
   Future<void> loadTransactions({
     TransactionType? type,
+    bool refresh = false,
+    bool loadMore = false,
+  }) async {
+    if (loadMore && (_isLoadingMore || !_hasNextPage)) return;
+
+    try {
+      if (loadMore) {
+        _isLoadingMore = true;
+        _currentPage++;
+      } else {
+        if (refresh) {
+          _currentPage = 1;
+          _hasNextPage = true;
+        }
+        _setLoading(true);
+      }
+
+      _clearError();
+
+      final result = await _apiService.getTransactions(
+        page: _currentPage,
+        limit: 10,
+        type: type?.value,
+        accountId: _filterAccountId,
+        categoryId: _filterCategoryId,
+        startDate: _filterStartDate?.toIso8601String(),
+        endDate: _filterEndDate?.toIso8601String(),
+      );
+
+      final transactionsData = result['data'] as List<dynamic>;
+      final meta = result['meta'] as Map<String, dynamic>;
+
+      if (refresh || _currentPage == 1) {
+        _transactions = transactionsData.map((data) => Transaction.fromJson(data)).toList();
+      } else {
+        _transactions.addAll(transactionsData.map((data) => Transaction.fromJson(data)).toList());
+      }
+
+      _hasNextPage = meta['hasNextPage'] ?? false;
+      _total = meta['total'] ?? 0;
+    } catch (e) {
+      if (loadMore) {
+        _currentPage--;
+      }
+
+      _setError('Failed to load transactions: $e');
+    } finally {
+      if (loadMore) {
+        _isLoadingMore = false;
+      } else {
+        _setLoading(false);
+      }
+
+      notifyListeners();
+    }
+  }
+
+  // Update filters and reload
+  Future<void> updateFilters({
     int? accountId,
     int? categoryId,
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    try {
-      _setLoading(true);
-      _clearError();
+    _filterAccountId = accountId;
+    _filterCategoryId = categoryId;
+    _filterStartDate = startDate;
+    _filterEndDate = endDate;
 
-      final transactionsData = await _apiService.getTransactions(
-        type: type?.value,
-        accountId: accountId,
-        categoryId: categoryId,
-        startDate: startDate?.toIso8601String(),
-        endDate: endDate?.toIso8601String(),
-      );
-      
-      _transactions = transactionsData.map((data) => Transaction.fromJson(data)).toList();
-    } catch (e) {
-      _setError('Failed to load transactions: $e');
-    } finally {
-      _setLoading(false);
-    }
+    await loadTransactions(refresh: true);
+  }
+
+  // Clear filters
+  Future<void> clearFilters() async {
+    _filterAccountId = null;
+    _filterCategoryId = null;
+    final now = DateTime.now();
+    _filterStartDate = DateTime(now.year, now.month, 1);
+    _filterEndDate = DateTime.now();
+
+    await loadTransactions(refresh: true);
   }
 
   // Create new transaction
@@ -228,6 +310,16 @@ class TransactionsProvider with ChangeNotifier {
     _transactions = [];
     _error = null;
     _isLoading = false;
+    _isLoadingMore = false;
+    _currentPage = 1;
+    _hasNextPage = true;
+    _total = 0;
+    _filterAccountId = null;
+    _filterCategoryId = null;
+
+    final now = DateTime.now();
+    _filterStartDate = DateTime(now.year, now.month, 1);
+    _filterEndDate = DateTime.now();
 
     notifyListeners();
   }

@@ -36,16 +36,28 @@ export class TransactionsService {
   }
 
   /**
-   * Find all transactions for a user with optional filters
+   * Find all transactions for a user with optional filters and pagination
    */
   async findAllByUser(
     userId: number,
+    page: number = 1,
+    limit: number = 20,
     type?: TransactionType,
     accountId?: number,
     categoryId?: number,
     startDate?: Date,
     endDate?: Date,
-  ): Promise<Transaction[]> {
+  ): Promise<{
+    data: Transaction[];
+    meta: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  }> {
     const query = this.transactionsRepository
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.account', 'account')
@@ -71,7 +83,28 @@ export class TransactionsService {
       });
     }
 
-    return query.orderBy('transaction.date', 'DESC').getMany();
+    const total = await query.getCount();
+    const totalPages = Math.ceil(total / limit);
+    const skip = (page - 1) * limit;
+
+    const transactions = await query
+      .orderBy('transaction.date', 'DESC')
+      .addOrderBy('transaction.id', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getMany();
+
+    return {
+      data: transactions,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 
   /**
@@ -132,7 +165,8 @@ export class TransactionsService {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59);
 
-    const transactions = await this.findAllByUser(userId, undefined, undefined, undefined, startDate, endDate);
+    const result = await this.findAllByUser(userId, 1, 10000, null, null, null, startDate, endDate);
+    const transactions = result.data;
 
     const income = transactions
       .filter(t => t.type === TransactionType.INCOME)

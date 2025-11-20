@@ -105,7 +105,9 @@ class ApiService {
   }
 
   // Transactions endpoints
-  Future<List<dynamic>> getTransactions({
+  Future<Map<String, dynamic>> getTransactions({
+    int? page,
+    int? limit,
     String? type,
     int? accountId,
     int? categoryId,
@@ -113,6 +115,8 @@ class ApiService {
     String? endDate,
   }) async {
     final queryParams = <String, dynamic>{};
+    if (page != null) queryParams['page'] = page;
+    if (limit != null) queryParams['limit'] = limit;
     if (type != null) queryParams['type'] = type;
     if (accountId != null) queryParams['accountId'] = accountId;
     if (categoryId != null) queryParams['categoryId'] = categoryId;
