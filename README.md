@@ -22,16 +22,20 @@ A full-stack personal finance management application built with Flutter (fronten
 - **Expense Tracking**: Track expenses with receipt image upload support
 - **Transaction Categories**: Predefined and custom categories for better organization
 - **Transaction History**: Comprehensive list with filtering and search capabilities
-<img width="1344" height="2992" alt="image" src="https://github.com/user-attachments/assets/bb202c61-0ede-429e-9eb6-394d79ee118d" />
-<img width="1344" height="2992" alt="image" src="https://github.com/user-attachments/assets/cc7a4068-b864-404e-b4cf-6977f3624359" />
-<img width="1344" height="2992" alt="image" src="https://github.com/user-attachments/assets/3f4d90a2-15cc-4fd9-9320-8ab7d763d337" />
-
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/bb202c61-0ede-429e-9eb6-394d79ee118d" />
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/cc7a4068-b864-404e-b4cf-6977f3624359" />
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/3f4d90a2-15cc-4fd9-9320-8ab7d763d337" />
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/ab5a71f8-af79-4a46-b058-2a3a26906c01" />
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/bc16221f-036d-41c1-a92a-ebc502f9ca75" />
 
 ### Dashboard & Analytics
 - **Monthly Overview**: Income vs expenses comparison charts
 - **Spending Analytics**: Category-wise spending breakdown
 - **Balance Trends**: Visual representation of financial health
 - **Quick Statistics**: Key financial metrics at a glance
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/ba521a3c-fdec-4099-90e9-3d8b25249a04" />
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/c0848840-f4eb-43eb-9bee-3ae6b280b051" />
+
 
 ## 🛠 Tech Stack
 
