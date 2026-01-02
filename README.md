@@ -174,35 +174,6 @@ myfinance/
 - **Account List**: Overview of all accounts with balances
 - **Account Details**: Individual account management
 
-## 🔧 API Endpoints
-
-### Authentication
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User login
-- `GET /auth/profile` - Get user profile
-
-### Accounts
-- `GET /accounts` - Get user accounts
-- `POST /accounts` - Create new account
-- `PATCH /accounts/:id` - Update account
-- `DELETE /accounts/:id` - Delete account
-
-### Transactions
-- `GET /transactions` - Get transactions (with filters)
-- `POST /transactions` - Create transaction (with file upload)
-- `PATCH /transactions/:id` - Update transaction
-- `DELETE /transactions/:id` - Delete transaction
-- `GET /transactions/summary/:year/:month` - Monthly summary
-
-### Categories
-- `GET /categories` - Get categories
-- `POST /categories` - Create category
-
-### Dashboard
-- `GET /dashboard` - Dashboard overview
-- `GET /dashboard/yearly/:year` - Yearly statistics
-- `GET /dashboard/spending-by-category` - Category breakdown
-
 ## 🎨 Design Features
 
 - **Material Design 3**: Modern, consistent UI design
